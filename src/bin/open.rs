@@ -7,7 +7,7 @@ use std::{
     io::{self, Read, Write},
 };
 
-use sxd_document::parser;
+use sxd_document_no_unsafe::parser;
 
 fn pretty_error(xml: &str, position: usize) -> String {
     let s = &xml[position..];
@@ -34,7 +34,7 @@ where
     let mut out = io::sink();
     let d = package.as_document();
 
-    sxd_document::writer::format_document(&d, &mut out).expect("I can't output");
+    sxd_document_no_unsafe::writer::format_document(&d, &mut out).expect("I can't output");
     // Remove when we move back to stdout_raw + buffer or when stdout flushed at program exit
     out.flush().unwrap();
 }
