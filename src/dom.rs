@@ -252,6 +252,10 @@ impl<'d> Element<'d> {
         self.node().name()
     }
 
+    pub fn local_name(&self) -> &'d str {
+        self.node().name_local_part()
+    }
+
     pub fn set_name<'n, N>(&self, name: N)
     where
         N: Into<QName<'n>>,
@@ -449,6 +453,13 @@ impl<'d> Element<'d> {
             })
     }
 
+    pub fn attribute_value_interned<'n, N>(&self, name: N) -> Option<&'d str>
+    where
+        N: Into<QName<'n>>,
+    {
+        self.attribute_value(name)
+    }
+
     pub fn remove_attribute<'n, N>(&self, name: N)
     where
         N: Into<QName<'n>>,
@@ -482,6 +493,18 @@ impl<'d> Attribute<'d> {
     }
     pub fn value(&self) -> &'d str {
         self.node().value()
+    }
+
+    pub fn value_interned(&self) -> &'d str {
+        self.node().value()
+    }
+
+    pub fn name_local_part_interned(&self) -> &'d str {
+        self.node().name().local_part
+    }
+
+    pub fn name_namespace_uri_interned(&self) -> Option<&'d str> {
+        self.node().name().namespace_uri
     }
 
     pub fn preferred_prefix(&self) -> Option<&'d str> {
@@ -523,6 +546,10 @@ node!(Text, raw::Text, "Textual data");
 
 impl<'d> Text<'d> {
     pub fn text(&self) -> &'d str {
+        self.node().text()
+    }
+
+    pub fn text_interned(&self) -> &'d str {
         self.node().text()
     }
 

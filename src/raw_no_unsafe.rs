@@ -166,6 +166,12 @@ impl Element {
     pub fn name(&self) -> QName<'_> {
         self.name.as_qname()
     }
+    pub fn name_local_part(&self) -> &str {
+        &self.name.local_part
+    }
+    pub fn name_local_part_interned(&self) -> InternedString {
+        self.name.local_part.clone()
+    }
     pub fn default_namespace_uri(&self) -> Option<&str> {
         self.default_namespace_uri.as_ref().map(|p| p.as_slice())
     }
@@ -188,6 +194,15 @@ impl Attribute {
     pub fn value(&self) -> &str {
         &self.value
     }
+    pub fn value_interned(&self) -> InternedString {
+        self.value.clone()
+    }
+    pub fn name_local_part_interned(&self) -> InternedString {
+        self.name.local_part.clone()
+    }
+    pub fn name_namespace_uri_interned(&self) -> Option<InternedString> {
+        self.name.namespace_uri.clone()
+    }
     pub fn preferred_prefix(&self) -> Option<&str> {
         self.preferred_prefix.as_ref().map(|p| p.as_slice())
     }
@@ -201,6 +216,9 @@ pub struct Text {
 impl Text {
     pub fn text(&self) -> &str {
         &self.text
+    }
+    pub fn text_interned(&self) -> InternedString {
+        self.text.clone()
     }
 }
 

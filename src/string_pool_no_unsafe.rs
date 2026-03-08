@@ -28,6 +28,12 @@ impl fmt::Debug for InternedString {
     }
 }
 
+impl fmt::Display for InternedString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.as_slice().fmt(f)
+    }
+}
+
 impl PartialEq for InternedString {
     fn eq(&self, other: &InternedString) -> bool {
         self.0.eq(&other.0)

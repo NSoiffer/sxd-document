@@ -251,6 +251,20 @@ impl<'d> Element<'d> {
         raw::QNameGuard::new(guard, self.node, raw::Element::name)
     }
 
+    pub fn local_name(&self) -> raw::StrGuard<'d, raw::Element> {
+        let guard = self.document.storage.elements.borrow();
+        raw::StrGuard::new(guard, self.node, raw::Element::name_local_part)
+    }
+
+    /// Returns the local name as an InternedString (Rc<str> clone — no heap allocation).
+    /// Implements Deref<Target=str>, PartialEq<str>, Display.
+    pub fn local_name_interned(&self) -> crate::string_pool::InternedString {
+        self.document.storage.elements.borrow()
+            .get(self.node)
+            .map(raw::Element::name_local_part_interned)
+            .unwrap_or_else(|| crate::string_pool::InternedString::from_str(""))
+    }
+
     pub fn set_name<'n, N>(&self, name: N)
     where
         N: Into<QName<'n>>,
@@ -468,6 +482,24 @@ impl<'d> Element<'d> {
         })
     }
 
+    /// Returns the attribute value as an InternedString (Rc<str> clone — cheap, no heap allocation).
+    /// Implements Deref<Target=str>, PartialEq<str>, Display. Use instead of attribute_value()
+    /// when you need to store the value beyond a single statement.
+    pub fn attribute_value_interned<'n, N>(&self, name: N) -> Option<crate::string_pool::InternedString>
+    where
+        N: Into<QName<'n>>,
+    {
+        let attr_id = self
+            .document
+            .connections
+            .attribute(self.document.storage, self.node, name);
+        attr_id.and_then(|a| {
+            self.document.storage.attributes.borrow()
+                .get(a)
+                .map(raw::Attribute::value_interned)
+        })
+    }
+
     pub fn remove_attribute<'n, N>(&self, name: N)
     where
         N: Into<QName<'n>>,
@@ -505,6 +537,26 @@ impl<'d> Attribute<'d> {
     pub fn value(&self) -> raw::StrGuard<'d, raw::Attribute> {
         let guard = self.document.storage.attributes.borrow();
         raw::StrGuard::new(guard, self.node, raw::Attribute::value)
+    }
+
+    pub fn value_interned(&self) -> crate::string_pool::InternedString {
+        self.document.storage.attributes.borrow()
+            .get(self.node)
+            .map(raw::Attribute::value_interned)
+            .unwrap_or_else(|| crate::string_pool::InternedString::from_str(""))
+    }
+
+    pub fn name_local_part_interned(&self) -> crate::string_pool::InternedString {
+        self.document.storage.attributes.borrow()
+            .get(self.node)
+            .map(raw::Attribute::name_local_part_interned)
+            .unwrap_or_else(|| crate::string_pool::InternedString::from_str(""))
+    }
+
+    pub fn name_namespace_uri_interned(&self) -> Option<crate::string_pool::InternedString> {
+        self.document.storage.attributes.borrow()
+            .get(self.node)
+            .and_then(raw::Attribute::name_namespace_uri_interned)
     }
 
     pub fn preferred_prefix(&self) -> Option<raw::StrGuard<'d, raw::Attribute>> {
@@ -553,6 +605,13 @@ impl<'d> Text<'d> {
     pub fn text(&self) -> raw::StrGuard<'d, raw::Text> {
         let guard = self.document.storage.texts.borrow();
         raw::StrGuard::new(guard, self.node, raw::Text::text)
+    }
+
+    pub fn text_interned(&self) -> crate::string_pool::InternedString {
+        self.document.storage.texts.borrow()
+            .get(self.node)
+            .map(raw::Text::text_interned)
+            .unwrap_or_else(|| crate::string_pool::InternedString::from_str(""))
     }
 
     pub fn set_text(&self, text: &str) {

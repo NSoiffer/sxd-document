@@ -36,6 +36,9 @@ impl Element {
     pub fn name(&self) -> QName<'_> {
         self.name.as_qname()
     }
+    pub fn name_local_part(&self) -> &str {
+        self.name.as_qname().local_part()
+    }
     pub fn default_namespace_uri(&self) -> Option<&str> {
         self.default_namespace_uri.map(|p| p.as_slice())
     }

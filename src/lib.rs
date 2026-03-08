@@ -69,7 +69,7 @@ mod string_pool;
 mod raw;
 #[cfg(feature = "no-unsafe")]
 #[path = "string_pool_no_unsafe.rs"]
-mod string_pool;
+pub mod string_pool;
 
 #[cfg(not(feature = "no-unsafe"))]
 pub mod dom;
@@ -102,6 +102,39 @@ pub mod __internal {
 
 pub use crate::str::XmlChar;
 
+#[cfg(feature = "no-unsafe")]
+pub use crate::string_pool::InternedString;
+
+/// Get an attribute value as &str with a default, without lifetime issues.
+/// Use `attr_str!(elem, "attr-name", "default")` instead of
+/// `elem.attribute_value("attr-name").map(|g| as_str!(g)).unwrap_or("default")`.
+/// In safe mode returns &str; in no-unsafe mode the guard is stored in a temp variable.
+#[cfg(not(feature = "no-unsafe"))]
+#[macro_export]
+macro_rules! attr_str {
+    ($elem:expr, $name:expr) => {
+        $elem.attribute_value($name)
+    };
+    ($elem:expr, $name:expr, $default:expr) => {
+        $elem.attribute_value($name).unwrap_or($default)
+    };
+}
+
+#[cfg(feature = "no-unsafe")]
+#[macro_export]
+macro_rules! attr_str {
+    ($elem:expr, $name:expr) => {
+        $elem.attribute_value_interned($name)
+    };
+    ($elem:expr, $name:expr, $default:expr) => {{
+        let _attr_guard = $elem.attribute_value_interned($name);
+        match _attr_guard {
+            Some(ref s) => &**s,
+            None => $default,
+        }
+    }};
+}
+
 #[cfg(not(feature = "no-unsafe"))]
 #[macro_export]
 macro_rules! as_str {
@@ -126,6 +159,26 @@ macro_rules! as_qname {
     };
 }
 
+/// Get the local name `&str` of an element without allocation.
+/// Use `local_name!(element)` in place of `element.name().local_part()`.
+#[cfg(not(feature = "no-unsafe"))]
+#[macro_export]
+macro_rules! local_name {
+    ($e:expr) => {
+        $e.local_name()
+    };
+}
+
+/// Get text content of a Text node without allocation.
+/// In safe mode returns &'d str; in no-unsafe mode returns InternedString (Rc<str> clone).
+/// Use `text_interned!(text_node)` in place of `text_node.text()` when you need to store the result.
+#[cfg(not(feature = "no-unsafe"))]
+#[macro_export]
+macro_rules! text_interned {
+    ($e:expr) => {
+        $e.text_interned()
+    };
+}
 #[cfg(feature = "no-unsafe")]
 #[macro_export]
 macro_rules! as_str {
@@ -138,7 +191,7 @@ macro_rules! as_str {
 #[macro_export]
 macro_rules! as_opt_str {
     ($e:expr) => {
-        $e.as_ref().map(|x| &*x)
+        $e.as_deref()
     };
 }
 
@@ -147,6 +200,27 @@ macro_rules! as_opt_str {
 macro_rules! as_qname {
     ($e:expr) => {
         $e.get()
+    };
+}
+
+/// Get the local name of an element as an InternedString (Rc<str> clone, no heap allocation).
+/// Implements Deref<Target=str>, PartialEq<str>, Display — use like &str in most contexts.
+/// Use `local_name!(element)` in place of `element.name().local_part()`.
+#[cfg(feature = "no-unsafe")]
+#[macro_export]
+macro_rules! local_name {
+    ($e:expr) => {
+        $e.local_name_interned()
+    };
+}
+
+/// Get text content of a Text node without allocation.
+/// In safe mode returns &'d str; in no-unsafe mode returns InternedString (Rc<str> clone).
+#[cfg(feature = "no-unsafe")]
+#[macro_export]
+macro_rules! text_interned {
+    ($e:expr) => {
+        $e.text_interned()
     };
 }
 
