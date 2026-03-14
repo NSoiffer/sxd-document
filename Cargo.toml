@@ -1,5 +1,5 @@
 [package]
-name = "sxd-document_no_unsafe"
+name = "sxd-document-no-unsafe"
 version = "0.4.0"
 authors = ["Jake Goulding <jake.goulding@gmail.com>", "Neil Soiffer <soiffer@alum.mit.edu>"]
 edition = "2024"
