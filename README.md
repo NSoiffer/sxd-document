@@ -1,6 +1,6 @@
 # SXD-Document
 
-An XML library in Rust.
+An XML library in Rust, modified to add a `no-unsafe` flag to eliminate use of `unsafe{}`
 
 [![crates.io][Crate Logo]][Crate]
 [![Documentation][Doc Logo]][Doc]
