@@ -5,7 +5,7 @@ use std::borrow::Borrow;
 use std::{
     cell::{Cell, RefCell},
     cmp::max,
-    collections::{hash_set::HashSet, LinkedList},
+    collections::{LinkedList, hash_set::HashSet},
     default::Default,
     fmt, hash, mem,
     ops::Deref,

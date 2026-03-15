@@ -60,11 +60,11 @@ mod str;
 mod str_ext;
 
 #[cfg(not(feature = "no-unsafe"))]
+pub mod dom;
+#[cfg(not(feature = "no-unsafe"))]
 mod raw;
 #[cfg(not(feature = "no-unsafe"))]
 mod string_pool;
-#[cfg(not(feature = "no-unsafe"))]
-pub mod dom;
 #[cfg(not(feature = "no-unsafe"))]
 #[doc(hidden)]
 pub mod thindom;

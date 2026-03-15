@@ -27,7 +27,7 @@ use peresil::{self, ParseMaster, Recoverable, StringPoint};
 
 use self::Reference::*;
 
-use super::{dom, str::XmlStr, PrefixedName, QName};
+use super::{PrefixedName, QName, dom, str::XmlStr};
 
 #[cfg(feature = "no-unsafe")]
 use crate::string_pool::InternedString;
@@ -116,7 +116,7 @@ impl Recoverable for SpecificError {
 impl fmt::Display for SpecificError {
     #[allow(deprecated)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use self::{error::Error, SpecificError::*};
+        use self::{SpecificError::*, error::Error};
 
         match *self {
             Expected(s) | ExpectedClosingQuote(s) | ExpectedOpeningQuote(s) => {
@@ -403,9 +403,10 @@ impl<'a> PullParser<'a> {
 }
 
 fn parse_comment<'a>(xml: StringPoint<'a>) -> XmlProgress<'a, Token<'a>> {
-    let (xml, _) = try_parse!(xml
-        .consume_literal("<!--")
-        .map_err(|_| SpecificError::ExpectedComment));
+    let (xml, _) = try_parse!(
+        xml.consume_literal("<!--")
+            .map_err(|_| SpecificError::ExpectedComment)
+    );
     let (xml, text) = try_parse!(xml.consume_comment());
     let (xml, _) = try_parse!(xml.expect_literal("-->"));
 
@@ -421,13 +422,15 @@ where
     F: FnMut(StringPoint<'a>) -> XmlProgress<'a, T>,
 {
     let mut f = f;
-    let (xml, _) = try_parse!(xml
-        .consume_literal(quote)
-        .map_err(|_| SpecificError::ExpectedOpeningQuote(quote)));
+    let (xml, _) = try_parse!(
+        xml.consume_literal(quote)
+            .map_err(|_| SpecificError::ExpectedOpeningQuote(quote))
+    );
     let (xml, value) = try_parse!(f(xml));
-    let (xml, _) = try_parse!(xml
-        .consume_literal(quote)
-        .map_err(|_| SpecificError::ExpectedClosingQuote(quote)));
+    let (xml, _) = try_parse!(
+        xml.consume_literal(quote)
+            .map_err(|_| SpecificError::ExpectedClosingQuote(quote))
+    );
 
     success(value, xml)
 }
@@ -539,9 +542,10 @@ fn parse_external_id<'a>(pm: &mut XmlMaster<'a>, xml: StringPoint<'a>) -> XmlPro
 fn parse_int_subset<'a>(_pm: &mut XmlMaster<'a>, xml: StringPoint<'a>) -> XmlProgress<'a, &'a str> {
     let (xml, _) = try_parse!(xml.expect_literal("["));
     let (xml, _) = xml.consume_space().optional(xml);
-    let (xml, elements) = try_parse!(xml
-        .consume_int_subset()
-        .map_err(|_| SpecificError::ExpectedIntSubset));
+    let (xml, elements) = try_parse!(
+        xml.consume_int_subset()
+            .map_err(|_| SpecificError::ExpectedIntSubset)
+    );
     let (xml, _) = xml.consume_space().optional(xml);
     let (xml, _) = try_parse!(xml.expect_literal("]"));
     let (xml, _) = xml.consume_space().optional(xml);
@@ -555,9 +559,10 @@ fn parse_document_type_declaration<'a>(
 ) -> XmlProgress<'a, Token<'a>> {
     let (xml, _) = try_parse!(xml.expect_literal("<!DOCTYPE"));
     let (xml, _) = try_parse!(xml.expect_space());
-    let (xml, _type_name) = try_parse!(xml
-        .consume_name()
-        .map_err(|_| SpecificError::ExpectedDocumentTypeName));
+    let (xml, _type_name) = try_parse!(
+        xml.consume_name()
+            .map_err(|_| SpecificError::ExpectedDocumentTypeName)
+    );
     let (xml, _id) = try_parse!(pm.optional(xml, |p, x| parse_external_id(p, x)));
     let (xml, _) = xml.consume_space().optional(xml);
     let (xml, _int_subset) = try_parse!(pm.optional(xml, |p, x| parse_int_subset(p, x)));
@@ -572,13 +577,15 @@ fn parse_pi_value(xml: StringPoint<'_>) -> XmlProgress<'_, &str> {
 }
 
 fn parse_pi<'a>(xml: StringPoint<'a>) -> XmlProgress<'a, Token<'a>> {
-    let (xml, _) = try_parse!(xml
-        .consume_literal("<?")
-        .map_err(|_| SpecificError::ExpectedProcessingInstruction));
+    let (xml, _) = try_parse!(
+        xml.consume_literal("<?")
+            .map_err(|_| SpecificError::ExpectedProcessingInstruction)
+    );
     let target_xml = xml;
-    let (xml, target) = try_parse!(xml
-        .consume_name()
-        .map_err(|_| SpecificError::ExpectedProcessingInstructionTarget));
+    let (xml, target) = try_parse!(
+        xml.consume_name()
+            .map_err(|_| SpecificError::ExpectedProcessingInstructionTarget)
+    );
     let (xml, value) = parse_pi_value(xml).optional(xml);
     let (xml, _) = try_parse!(xml.expect_literal("?>"));
 
@@ -645,15 +652,16 @@ fn parse_attribute_start<'a>(
 
     let (xml, _) = try_parse!(parse_eq(xml));
 
-    let (xml, q) = try_parse!(pm
-        .alternate()
-        .one(|_| xml
-            .expect_literal(QUOT)
-            .map_err(|_| SpecificError::ExpectedOpeningQuote(QUOT)))
-        .one(|_| xml
-            .expect_literal(APOS)
-            .map_err(|_| SpecificError::ExpectedOpeningQuote(APOS)))
-        .finish());
+    let (xml, q) = try_parse!(
+        pm.alternate()
+            .one(|_| xml
+                .expect_literal(QUOT)
+                .map_err(|_| SpecificError::ExpectedOpeningQuote(QUOT)))
+            .one(|_| xml
+                .expect_literal(APOS)
+                .map_err(|_| SpecificError::ExpectedOpeningQuote(APOS)))
+            .finish()
+    );
 
     let q = if q == QUOT { QUOT } else { APOS };
 
@@ -676,9 +684,10 @@ fn parse_attribute_literal<'a>(xml: StringPoint<'a>, quote: &str) -> XmlProgress
 }
 
 fn parse_entity_ref(xml: StringPoint<'_>) -> XmlProgress<'_, Reference<'_>> {
-    let (xml, _) = try_parse!(xml
-        .consume_literal("&")
-        .map_err(|_| SpecificError::ExpectedNamedReference));
+    let (xml, _) = try_parse!(
+        xml.consume_literal("&")
+            .map_err(|_| SpecificError::ExpectedNamedReference)
+    );
     let (xml, name) = try_parse!(Span::parse(xml, |xml| xml
         .consume_name()
         .map_err(|_| SpecificError::ExpectedNamedReferenceValue)));
@@ -688,9 +697,10 @@ fn parse_entity_ref(xml: StringPoint<'_>) -> XmlProgress<'_, Reference<'_>> {
 }
 
 fn parse_decimal_char_ref(xml: StringPoint<'_>) -> XmlProgress<'_, Reference<'_>> {
-    let (xml, _) = try_parse!(xml
-        .consume_literal("&#")
-        .map_err(|_| SpecificError::ExpectedDecimalReference));
+    let (xml, _) = try_parse!(
+        xml.consume_literal("&#")
+            .map_err(|_| SpecificError::ExpectedDecimalReference)
+    );
     let (xml, dec) = try_parse!(Span::parse(xml, |xml| xml
         .consume_decimal_chars()
         .map_err(|_| SpecificError::ExpectedDecimalReferenceValue)));
@@ -700,9 +710,10 @@ fn parse_decimal_char_ref(xml: StringPoint<'_>) -> XmlProgress<'_, Reference<'_>
 }
 
 fn parse_hex_char_ref(xml: StringPoint<'_>) -> XmlProgress<'_, Reference<'_>> {
-    let (xml, _) = try_parse!(xml
-        .consume_literal("&#x")
-        .map_err(|_| SpecificError::ExpectedHexReference));
+    let (xml, _) = try_parse!(
+        xml.consume_literal("&#x")
+            .map_err(|_| SpecificError::ExpectedHexReference)
+    );
     let (xml, hex) = try_parse!(Span::parse(xml, |xml| xml.consume_hex_chars()));
     let (xml, _) = try_parse!(xml.expect_literal(";"));
 
@@ -963,8 +974,7 @@ impl<'d> DomBuilder<'d> {
         let element = if let Some(prefix) = element_name.prefix {
             let ns_uri_from_map = new_prefix_mappings.get(prefix).map(|p| &p[..]);
             let ns_uri_from_parent = self.namespace_uri_for_prefix(prefix);
-            let ns_uri: Option<&str> =
-                ns_uri_from_map.or(ns_uri_from_parent.as_deref());
+            let ns_uri: Option<&str> = ns_uri_from_map.or(ns_uri_from_parent.as_deref());
 
             if let Some(ns_uri) = ns_uri {
                 let element = self.doc.create_element((ns_uri, element_name.local_part));
@@ -1014,8 +1024,7 @@ impl<'d> DomBuilder<'d> {
             if let Some(prefix) = name.prefix {
                 let ns_uri_from_map = new_prefix_mappings.get(prefix).map(|p| &p[..]);
                 let ns_uri_from_parent = self.namespace_uri_for_prefix(prefix);
-                let ns_uri: Option<&str> =
-                    ns_uri_from_map.or(ns_uri_from_parent.as_deref());
+                let ns_uri: Option<&str> = ns_uri_from_map.or(ns_uri_from_parent.as_deref());
 
                 if let Some(ns_uri) = ns_uri {
                     let attr = element.set_attribute_value((ns_uri, name.local_part), &builder);
@@ -1369,7 +1378,7 @@ impl<'a> DeferredAttributes<'a> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{dom, Package, QName};
+    use crate::{Package, QName, dom};
 
     macro_rules! assert_qname_eq(
         ($l:expr, $r:expr) => (assert_eq!(crate::as_qname!($l), Into::<QName<'_>>::into($r)));
@@ -1580,7 +1589,10 @@ mod test {
         let doc = package.as_document();
         let top = top(&doc);
 
-        assert_eq!(crate::as_opt_str!(top.default_namespace_uri()), Some("namespace"));
+        assert_eq!(
+            crate::as_opt_str!(top.default_namespace_uri()),
+            Some("namespace")
+        );
         assert_qname_eq!(top.name(), ("namespace", "hello"));
     }
 
@@ -1590,7 +1602,10 @@ mod test {
         let doc = package.as_document();
         let top = top(&doc);
 
-        assert_eq!(crate::as_opt_str!(top.attribute_value("scope")), Some("world"));
+        assert_eq!(
+            crate::as_opt_str!(top.attribute_value("scope")),
+            Some("world")
+        );
     }
 
     #[test]
@@ -1599,7 +1614,10 @@ mod test {
         let doc = package.as_document();
         let top = top(&doc);
 
-        assert_eq!(crate::as_opt_str!(top.attribute_value("scope")), Some("world"));
+        assert_eq!(
+            crate::as_opt_str!(top.attribute_value("scope")),
+            Some("world")
+        );
     }
 
     #[test]
@@ -1608,8 +1626,14 @@ mod test {
         let doc = package.as_document();
         let top = top(&doc);
 
-        assert_eq!(crate::as_opt_str!(top.attribute_value("scope")), Some("world"));
-        assert_eq!(crate::as_opt_str!(top.attribute_value("happy")), Some("true"));
+        assert_eq!(
+            crate::as_opt_str!(top.attribute_value("scope")),
+            Some("world")
+        );
+        assert_eq!(
+            crate::as_opt_str!(top.attribute_value("happy")),
+            Some("true")
+        );
     }
 
     #[test]
@@ -1648,7 +1672,10 @@ mod test {
         let doc = package.as_document();
         let top = top(&doc);
 
-        assert_eq!(crate::as_opt_str!(top.attribute_value("msg")), Some("I <3 math"));
+        assert_eq!(
+            crate::as_opt_str!(top.attribute_value("msg")),
+            Some("I <3 math")
+        );
     }
 
     #[test]
@@ -1730,7 +1757,10 @@ mod test {
         let hello = top(&doc);
         let world = hello.children()[0].element().unwrap();
 
-        assert_eq!(crate::as_opt_str!(world.attribute_value("name")), Some("Earth"));
+        assert_eq!(
+            crate::as_opt_str!(world.attribute_value("name")),
+            Some("Earth")
+        );
     }
 
     #[test]

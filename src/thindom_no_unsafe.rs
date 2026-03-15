@@ -1,6 +1,6 @@
 use std::{fmt, hash, marker::PhantomData};
 
-use super::{raw, QName};
+use super::{QName, raw};
 use crate::string_pool::InternedString;
 
 pub struct Storage<'d> {
@@ -545,10 +545,7 @@ mod test {
         let (s, mut c) = package.as_thin_document();
         let alpha = s.create_element("alpha");
         c.append_root_child(alpha);
-        assert_eq!(
-            Some(ParentOfChild::Root(c.root())),
-            c.element_parent(alpha)
-        );
+        assert_eq!(Some(ParentOfChild::Root(c.root())), c.element_parent(alpha));
     }
 
     #[test]
@@ -578,10 +575,7 @@ mod test {
         let element = s.create_element("element");
         let attr = s.create_attribute("hello", "world");
         c.set_attribute(element, attr);
-        assert_eq!(
-            &*c.attribute_value(element, "hello").unwrap(),
-            "world"
-        );
+        assert_eq!(&*c.attribute_value(element, "hello").unwrap(), "world");
     }
 
     #[test]
@@ -590,10 +584,7 @@ mod test {
         let (s, _c) = package.as_thin_document();
         let text = s.create_text("Now is the winter of our discontent.");
         s.text_set_text(text, "Made glorious summer by this sun of York");
-        assert_eq!(
-            &*text.text(&s),
-            "Made glorious summer by this sun of York"
-        );
+        assert_eq!(&*text.text(&s), "Made glorious summer by this sun of York");
     }
 
     #[test]
@@ -731,7 +722,10 @@ mod test {
         let attr2 = s.create_attribute("hello", "galaxy");
         c.set_attribute(element, attr1);
         c.set_attribute(element, attr2);
-        assert_eq!(c.attribute_value(element, "hello").as_deref(), Some("galaxy"));
+        assert_eq!(
+            c.attribute_value(element, "hello").as_deref(),
+            Some("galaxy")
+        );
     }
 
     #[test]
@@ -744,7 +738,12 @@ mod test {
         c.set_attribute(element, attr1);
         c.set_attribute(element, attr2);
         let mut attrs = c.attributes(element);
-        attrs.sort_by(|a, b| a.name(&s).get().namespace_uri().cmp(&b.name(&s).get().namespace_uri()));
+        attrs.sort_by(|a, b| {
+            a.name(&s)
+                .get()
+                .namespace_uri()
+                .cmp(&b.name(&s).get().namespace_uri())
+        });
         assert_eq!(2, attrs.len());
         assert_qname_eq!(attrs[0].name(&s), "name1");
         assert_eq!(&*attrs[0].value(&s), "value1");
@@ -805,7 +804,10 @@ mod test {
         let (s, _c) = package.as_thin_document();
         let comment = s.create_comment("Now is the winter of our discontent.");
         s.comment_set_text(comment, "Made glorious summer by this sun of York");
-        assert_eq!(&*comment.text(&s), "Made glorious summer by this sun of York");
+        assert_eq!(
+            &*comment.text(&s),
+            "Made glorious summer by this sun of York"
+        );
     }
 
     #[test]

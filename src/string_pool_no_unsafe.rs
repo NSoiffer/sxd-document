@@ -1,11 +1,5 @@
 use std::borrow::Borrow;
-use std::{
-    cell::RefCell,
-    collections::HashSet,
-    fmt, hash,
-    ops::Deref,
-    rc::Rc,
-};
+use std::{cell::RefCell, collections::HashSet, fmt, hash, ops::Deref, rc::Rc};
 
 #[derive(Clone)]
 pub struct InternedString(Rc<str>);

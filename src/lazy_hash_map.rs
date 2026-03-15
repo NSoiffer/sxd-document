@@ -1,6 +1,6 @@
 use std::{
     borrow::Borrow,
-    collections::{hash_map, HashMap},
+    collections::{HashMap, hash_map},
     hash::Hash,
 };
 

@@ -31,8 +31,8 @@ use std::{
 use self::Content::*;
 
 use super::{
-    str_ext::{SplitKeepingDelimiterExt, SplitType},
     QName,
+    str_ext::{SplitKeepingDelimiterExt, SplitType},
 };
 
 use super::{
@@ -337,11 +337,7 @@ impl Writer {
     }
 
     fn quote_char(&self) -> &'static str {
-        if self.single_quotes {
-            "'"
-        } else {
-            "\""
-        }
+        if self.single_quotes { "'" } else { "\"" }
     }
 }
 
@@ -623,7 +619,7 @@ where
 #[cfg(test)]
 mod test {
     use super::{
-        super::{dom, Package},
+        super::{Package, dom},
         Writer,
     };
 
@@ -776,7 +772,10 @@ mod test {
         d.root().append_child(e);
 
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><hello p:a1='b1' autons0:a2='b2' xmlns:p='namespace1' xmlns:autons0='namespace2'/>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><hello p:a1='b1' autons0:a2='b2' xmlns:p='namespace1' xmlns:autons0='namespace2'/>"
+        );
     }
 
     #[test]
@@ -794,7 +793,10 @@ mod test {
         d.root().append_child(e);
 
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><hello p1:a1='b1' p2:a2='b2' xmlns:p1='namespace' xmlns:p2='namespace'/>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><hello p1:a1='b1' p2:a2='b2' xmlns:p1='namespace' xmlns:p2='namespace'/>"
+        );
     }
 
     #[test]
@@ -835,7 +837,10 @@ mod test {
         d.root().append_child(hello);
 
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><autons0:hello xmlns:autons0='outer'><autons1:world xmlns:autons1='inner'/></autons0:hello>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><autons0:hello xmlns:autons0='outer'><autons1:world xmlns:autons1='inner'/></autons0:hello>"
+        );
     }
 
     #[test]
@@ -856,7 +861,10 @@ mod test {
         d.root().append_child(hello);
 
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><hello xmlns='outer' xmlns:o='outer'><world xmlns='inner'><empty/></world></hello>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><hello xmlns='outer' xmlns:o='outer'><world xmlns='inner'><empty/></world></hello>"
+        );
     }
 
     #[test]
@@ -869,7 +877,10 @@ mod test {
         d.root().append_child(hello);
 
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><autons0:hello xmlns:autons0='ns'><autons0:world/></autons0:hello>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><autons0:hello xmlns:autons0='ns'><autons0:world/></autons0:hello>"
+        );
     }
 
     #[test]

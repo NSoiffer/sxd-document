@@ -1,6 +1,6 @@
 use std::{fmt, hash, marker::PhantomData, slice};
 
-use super::{raw, QName};
+use super::{QName, raw};
 
 pub struct Storage<'d> {
     storage: &'d raw::Storage,

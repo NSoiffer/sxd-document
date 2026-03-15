@@ -3,7 +3,7 @@
 
 use std::{fmt, hash};
 
-use super::{raw, QName};
+use super::{QName, raw};
 
 type SiblingFn<T> = unsafe fn(&raw::Connections, T) -> raw::SiblingIter<'_>;
 

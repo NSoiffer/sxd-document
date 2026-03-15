@@ -1,4 +1,4 @@
-use super::{lazy_hash_map::LazyHashMap, QName};
+use super::{QName, lazy_hash_map::LazyHashMap};
 
 use crate::string_pool::{InternedString, StringPool};
 use std::{cell::RefCell, marker::PhantomData};
@@ -412,9 +412,7 @@ impl Storage {
     }
 
     pub fn element_preferred_prefix(&self, element: Index<Element>) -> Option<InternedString> {
-        self.elements.borrow()[element.idx]
-            .preferred_prefix
-            .clone()
+        self.elements.borrow()[element.idx].preferred_prefix.clone()
     }
 
     pub fn attribute_name(&self, attribute: Index<Attribute>) -> QNameValue {
@@ -448,15 +446,11 @@ impl Storage {
     }
 
     pub fn pi_target(&self, pi: Index<ProcessingInstruction>) -> InternedString {
-        self.processing_instructions.borrow()[pi.idx]
-            .target
-            .clone()
+        self.processing_instructions.borrow()[pi.idx].target.clone()
     }
 
     pub fn pi_value(&self, pi: Index<ProcessingInstruction>) -> Option<InternedString> {
-        self.processing_instructions.borrow()[pi.idx]
-            .value
-            .clone()
+        self.processing_instructions.borrow()[pi.idx].value.clone()
     }
 }
 
@@ -477,7 +471,11 @@ impl Connections {
 
     // --- Parent accessors ---
 
-    pub fn element_parent(&self, storage: &Storage, child: Index<Element>) -> Option<ParentOfChild> {
+    pub fn element_parent(
+        &self,
+        storage: &Storage,
+        child: Index<Element>,
+    ) -> Option<ParentOfChild> {
         storage.elements.borrow()[child.idx].parent
     }
 
@@ -548,9 +546,7 @@ impl Connections {
     }
 
     pub fn clear_root_children(&self, storage: &Storage) {
-        let children: Vec<ChildOfRoot> = storage.roots.borrow()[self.root.idx]
-            .children
-            .clone();
+        let children: Vec<ChildOfRoot> = storage.roots.borrow()[self.root.idx].children.clone();
         for c in &children {
             self.clear_child_parent(storage, (*c).into());
         }
@@ -558,15 +554,11 @@ impl Connections {
     }
 
     pub fn clear_element_children(&self, storage: &Storage, parent: Index<Element>) {
-        let children: Vec<ChildOfElement> = storage.elements.borrow()[parent.idx]
-            .children
-            .clone();
+        let children: Vec<ChildOfElement> = storage.elements.borrow()[parent.idx].children.clone();
         for c in &children {
             self.clear_child_parent(storage, *c);
         }
-        storage.elements.borrow_mut()[parent.idx]
-            .children
-            .clear();
+        storage.elements.borrow_mut()[parent.idx].children.clear();
     }
 
     // --- Parent removal ---
@@ -622,7 +614,11 @@ impl Connections {
         storage.roots.borrow()[self.root.idx].children.clone()
     }
 
-    pub fn element_children(&self, storage: &Storage, parent: Index<Element>) -> Vec<ChildOfElement> {
+    pub fn element_children(
+        &self,
+        storage: &Storage,
+        parent: Index<Element>,
+    ) -> Vec<ChildOfElement> {
         storage.elements.borrow()[parent.idx].children.clone()
     }
 
@@ -690,11 +686,7 @@ impl Connections {
         pi: Index<ProcessingInstruction>,
     ) -> Vec<ChildOfElement> {
         let parent = storage.processing_instructions.borrow()[pi.idx].parent;
-        self.preceding_siblings_impl(
-            storage,
-            parent,
-            ChildOfElement::ProcessingInstruction(pi),
-        )
+        self.preceding_siblings_impl(storage, parent, ChildOfElement::ProcessingInstruction(pi))
     }
 
     pub fn processing_instruction_following_siblings(
@@ -703,11 +695,7 @@ impl Connections {
         pi: Index<ProcessingInstruction>,
     ) -> Vec<ChildOfElement> {
         let parent = storage.processing_instructions.borrow()[pi.idx].parent;
-        self.following_siblings_impl(
-            storage,
-            parent,
-            ChildOfElement::ProcessingInstruction(pi),
-        )
+        self.following_siblings_impl(storage, parent, ChildOfElement::ProcessingInstruction(pi))
     }
 
     fn preceding_siblings_impl(
@@ -728,10 +716,7 @@ impl Connections {
                     }
                     _ => return Vec::new(),
                 };
-                let pos = children
-                    .iter()
-                    .position(|c| *c == child_as_root)
-                    .unwrap();
+                let pos = children.iter().position(|c| *c == child_as_root).unwrap();
                 children[..pos].iter().map(|&c| c.into()).collect()
             }
             Some(ParentOfChild::Element(parent_idx)) => {
@@ -762,10 +747,7 @@ impl Connections {
                     }
                     _ => return Vec::new(),
                 };
-                let pos = children
-                    .iter()
-                    .position(|c| *c == child_as_root)
-                    .unwrap();
+                let pos = children.iter().position(|c| *c == child_as_root).unwrap();
                 children[pos + 1..].iter().map(|&c| c.into()).collect()
             }
             Some(ParentOfChild::Element(parent_idx)) => {
@@ -788,11 +770,7 @@ impl Connections {
         storage.attributes.borrow()[attribute.idx].parent
     }
 
-    pub fn attributes(
-        &self,
-        storage: &Storage,
-        parent: Index<Element>,
-    ) -> Vec<Index<Attribute>> {
+    pub fn attributes(&self, storage: &Storage, parent: Index<Element>) -> Vec<Index<Attribute>> {
         storage.elements.borrow()[parent.idx].attributes.clone()
     }
 
@@ -829,9 +807,8 @@ impl Connections {
     where
         F: FnMut(Index<Attribute>) -> bool,
     {
-        let attr_indices: Vec<Index<Attribute>> = storage.elements.borrow()[element.idx]
-            .attributes
-            .clone();
+        let attr_indices: Vec<Index<Attribute>> =
+            storage.elements.borrow()[element.idx].attributes.clone();
         let mut to_keep = Vec::new();
         for a_idx in attr_indices {
             if pred(a_idx) {
@@ -1002,14 +979,12 @@ impl Connections {
                 // Remove from previous parent
                 let old_parent = storage.elements.borrow()[n.idx].parent;
                 self.detach_from_old_parent(storage, ChildOfRoot::Element(n).into(), old_parent);
-                storage.elements.borrow_mut()[n.idx].parent =
-                    Some(ParentOfChild::Root(self.root));
+                storage.elements.borrow_mut()[n.idx].parent = Some(ParentOfChild::Root(self.root));
             }
             ChildOfRoot::Comment(n) => {
                 let old_parent = storage.comments.borrow()[n.idx].parent;
                 self.detach_from_old_parent(storage, ChildOfRoot::Comment(n).into(), old_parent);
-                storage.comments.borrow_mut()[n.idx].parent =
-                    Some(ParentOfChild::Root(self.root));
+                storage.comments.borrow_mut()[n.idx].parent = Some(ParentOfChild::Root(self.root));
             }
             ChildOfRoot::ProcessingInstruction(n) => {
                 let old_parent = storage.processing_instructions.borrow()[n.idx].parent;

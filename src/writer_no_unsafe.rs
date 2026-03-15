@@ -8,8 +8,8 @@ use std::{
 use self::Content::*;
 
 use super::{
-    str_ext::{SplitKeepingDelimiterExt, SplitType},
     QName,
+    str_ext::{SplitKeepingDelimiterExt, SplitType},
 };
 
 use super::{
@@ -70,8 +70,7 @@ impl PrefixScope {
         let prefix = prefix.to_owned();
         self.prefix_to_ns
             .insert(prefix.clone(), namespace_uri.to_owned());
-        self.ns_to_prefix
-            .insert(namespace_uri.to_owned(), prefix);
+        self.ns_to_prefix.insert(namespace_uri.to_owned(), prefix);
     }
 
     fn define_prefix(&mut self, prefix: String, namespace_uri: &str) {
@@ -124,11 +123,7 @@ impl PrefixMapping {
     }
 
     fn default_namespace_uri_in_current_scope(&self) -> Option<&str> {
-        self.scopes
-            .last()
-            .unwrap()
-            .default_namespace_uri
-            .as_deref()
+        self.scopes.last().unwrap().default_namespace_uri.as_deref()
     }
 
     fn prefixes_in_current_scope(&self) -> std::slice::Iter<'_, (String, String)> {
@@ -288,11 +283,7 @@ impl Writer {
     }
 
     fn quote_char(&self) -> &'static str {
-        if self.single_quotes {
-            "'"
-        } else {
-            "\""
-        }
+        if self.single_quotes { "'" } else { "\"" }
     }
 }
 
@@ -360,13 +351,7 @@ impl Writer {
         writer.write_str("<")?;
         let name = element.name();
         let pref_prefix = element.preferred_prefix();
-        self.format_qname(
-            name.get(),
-            mapping,
-            pref_prefix.as_deref(),
-            false,
-            writer,
-        )?;
+        self.format_qname(name.get(), mapping, pref_prefix.as_deref(), false, writer)?;
 
         for attr in &attrs {
             writer.write_str(" ")?;
@@ -426,13 +411,7 @@ impl Writer {
         writer.write_str("</")?;
         let name = element.name();
         let pref_prefix = element.preferred_prefix();
-        self.format_qname(
-            name.get(),
-            mapping,
-            pref_prefix.as_deref(),
-            false,
-            writer,
-        )?;
+        self.format_qname(name.get(), mapping, pref_prefix.as_deref(), false, writer)?;
         writer.write_str(">")
     }
 
@@ -441,9 +420,7 @@ impl Writer {
         W: Write + ?Sized,
     {
         let t = text.text();
-        for item in t
-            .split_keeping_delimiter(|c| c == '<' || c == '>' || c == '&')
-        {
+        for item in t.split_keeping_delimiter(|c| c == '<' || c == '>' || c == '&') {
             match item {
                 SplitType::Match(t) => writer.write_str(t)?,
                 SplitType::Delimiter("<") => writer.write_str("&lt;")?,
@@ -578,7 +555,7 @@ where
 #[cfg(test)]
 mod test {
     use super::{
-        super::{dom, Package},
+        super::{Package, dom},
         Writer,
     };
 
@@ -775,7 +752,10 @@ mod test {
         a.set_preferred_prefix(Some("p"));
         d.root().append_child(e);
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><hello p:a1='b1' autons0:a2='b2' xmlns:p='namespace1' xmlns:autons0='namespace2'/>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><hello p:a1='b1' autons0:a2='b2' xmlns:p='namespace1' xmlns:autons0='namespace2'/>"
+        );
     }
 
     #[test]
@@ -789,7 +769,10 @@ mod test {
         a.set_preferred_prefix(Some("p2"));
         d.root().append_child(e);
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><hello p1:a1='b1' p2:a2='b2' xmlns:p1='namespace' xmlns:p2='namespace'/>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><hello p1:a1='b1' p2:a2='b2' xmlns:p1='namespace' xmlns:p2='namespace'/>"
+        );
     }
 
     #[test]
@@ -815,7 +798,10 @@ mod test {
         hello.append_child(world);
         d.root().append_child(hello);
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><autons0:hello xmlns:autons0='outer'><autons1:world xmlns:autons1='inner'/></autons0:hello>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><autons0:hello xmlns:autons0='outer'><autons1:world xmlns:autons1='inner'/></autons0:hello>"
+        );
     }
 
     #[test]
@@ -832,7 +818,10 @@ mod test {
         hello.append_child(world);
         d.root().append_child(hello);
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><hello xmlns='outer' xmlns:o='outer'><world xmlns='inner'><empty/></world></hello>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><hello xmlns='outer' xmlns:o='outer'><world xmlns='inner'><empty/></world></hello>"
+        );
     }
 
     #[test]
@@ -844,7 +833,10 @@ mod test {
         hello.append_child(world);
         d.root().append_child(hello);
         let xml = format_xml(&d);
-        assert_eq!(xml, "<?xml version='1.0'?><autons0:hello xmlns:autons0='ns'><autons0:world/></autons0:hello>");
+        assert_eq!(
+            xml,
+            "<?xml version='1.0'?><autons0:hello xmlns:autons0='ns'><autons0:world/></autons0:hello>"
+        );
     }
 
     #[test]

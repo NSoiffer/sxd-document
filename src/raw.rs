@@ -1,4 +1,4 @@
-use super::{lazy_hash_map::LazyHashMap, QName};
+use super::{QName, lazy_hash_map::LazyHashMap};
 
 use crate::string_pool::{InternedString, StringPool};
 use std::{marker::PhantomData, slice};

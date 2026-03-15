@@ -1,6 +1,6 @@
 use std::{fmt, hash};
 
-use super::{raw, QName};
+use super::{QName, raw};
 use crate::string_pool::InternedString;
 
 #[derive(Copy, Clone)]
@@ -136,7 +136,11 @@ macro_rules! node(
     )
 );
 
-node!(Root, raw::Root, "The logical ancestor of every other node type");
+node!(
+    Root,
+    raw::Root,
+    "The logical ancestor of every other node type"
+);
 
 impl<'d> Root<'d> {
     pub fn append_child<C>(&self, child: C)
@@ -227,7 +231,10 @@ impl<'d> Element<'d> {
     }
 
     pub fn local_name(&self) -> InternedString {
-        self.document.storage.element_name(self.node).local_part_clone()
+        self.document
+            .storage
+            .element_name(self.node)
+            .local_part_clone()
     }
 
     pub fn set_name<'n, N>(&self, name: N)
@@ -244,7 +251,9 @@ impl<'d> Element<'d> {
     }
 
     pub fn default_namespace_uri(&self) -> Option<InternedString> {
-        self.document.storage.element_default_namespace_uri(self.node)
+        self.document
+            .storage
+            .element_default_namespace_uri(self.node)
     }
 
     pub fn recursive_default_namespace_uri(&self) -> Option<InternedString> {
@@ -260,9 +269,11 @@ impl<'d> Element<'d> {
     }
 
     pub fn namespace_uri_for_prefix(&self, prefix: &str) -> Option<InternedString> {
-        self.document
-            .connections
-            .element_namespace_uri_for_prefix(self.document.storage, self.node, prefix)
+        self.document.connections.element_namespace_uri_for_prefix(
+            self.document.storage,
+            self.node,
+            prefix,
+        )
     }
 
     pub fn prefix_for_namespace_uri(
@@ -270,14 +281,12 @@ impl<'d> Element<'d> {
         namespace_uri: &str,
         preferred: Option<&str>,
     ) -> Option<InternedString> {
-        self.document
-            .connections
-            .element_prefix_for_namespace_uri(
-                self.document.storage,
-                self.node,
-                namespace_uri,
-                preferred,
-            )
+        self.document.connections.element_prefix_for_namespace_uri(
+            self.document.storage,
+            self.node,
+            namespace_uri,
+            preferred,
+        )
     }
 
     pub fn namespaces_in_scope(&self) -> Vec<Namespace> {
@@ -316,9 +325,11 @@ impl<'d> Element<'d> {
         C: Into<ChildOfElement<'d>>,
     {
         let child = child.into();
-        self.document
-            .connections
-            .append_element_child(self.document.storage, self.node, child.as_raw());
+        self.document.connections.append_element_child(
+            self.document.storage,
+            self.node,
+            child.as_raw(),
+        );
     }
 
     pub fn append_children<I>(&self, children: I)
@@ -345,9 +356,11 @@ impl<'d> Element<'d> {
         C: Into<ChildOfElement<'d>>,
     {
         let child = child.into();
-        self.document
-            .connections
-            .remove_element_child(self.document.storage, self.node, child.as_raw());
+        self.document.connections.remove_element_child(
+            self.document.storage,
+            self.node,
+            child.as_raw(),
+        );
     }
 
     pub fn clear_children(&self) {
@@ -446,7 +459,11 @@ impl<'d> fmt::Debug for Element<'d> {
     }
 }
 
-node!(Attribute, raw::Attribute, "Metadata about the current element");
+node!(
+    Attribute,
+    raw::Attribute,
+    "Metadata about the current element"
+);
 
 impl<'d> Attribute<'d> {
     pub fn name(&self) -> raw::QNameValue {
@@ -549,9 +566,7 @@ impl<'d> Comment<'d> {
     }
 
     pub fn set_text(&self, new_text: &str) {
-        self.document
-            .storage
-            .comment_set_text(self.node, new_text)
+        self.document.storage.comment_set_text(self.node, new_text)
     }
 
     pub fn parent(&self) -> Option<ParentOfChild<'d>> {
@@ -935,10 +950,7 @@ mod test {
         let doc = package.as_document();
         let text = doc.create_text("Now is the winter of our discontent.");
         text.set_text("Made glorious summer by this sun of York");
-        assert_eq!(
-            &*text.text(),
-            "Made glorious summer by this sun of York"
-        );
+        assert_eq!(&*text.text(), "Made glorious summer by this sun of York");
     }
 
     #[test]
@@ -1215,7 +1227,12 @@ mod test {
         element.set_attribute_value("name1", "value1");
         element.set_attribute_value("name2", "value2");
         let mut attrs = element.attributes();
-        attrs.sort_by(|a, b| a.name().get().namespace_uri().cmp(&b.name().get().namespace_uri()));
+        attrs.sort_by(|a, b| {
+            a.name()
+                .get()
+                .namespace_uri()
+                .cmp(&b.name().get().namespace_uri())
+        });
         assert_eq!(2, attrs.len());
         assert_qname_eq!(attrs[0].name(), "name1");
         assert_eq!(&*attrs[0].value(), "value1");
