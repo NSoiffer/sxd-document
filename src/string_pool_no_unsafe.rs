@@ -1,12 +1,22 @@
 use std::borrow::Borrow;
+use std::str::FromStr;
 use std::{cell::RefCell, collections::HashSet, fmt, hash, ops::Deref, rc::Rc};
 
 #[derive(Clone)]
 pub struct InternedString(Rc<str>);
 
 impl InternedString {
+    #[allow(clippy::should_implement_trait)] // We implement FromStr; this is a convenience that returns T directly
     pub fn from_str(s: &str) -> InternedString {
         InternedString(Rc::from(s))
+    }
+}
+
+impl FromStr for InternedString {
+    type Err = std::convert::Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(InternedString::from_str(s))
     }
 }
 
@@ -85,6 +95,12 @@ impl PartialEq<String> for InternedString {
 
 pub struct StringPool {
     index: RefCell<HashSet<Rc<str>>>,
+}
+
+impl Default for StringPool {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StringPool {

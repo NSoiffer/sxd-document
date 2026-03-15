@@ -229,10 +229,10 @@ impl PrefixMapping {
             return NamespaceType::Default;
         }
 
-        if let Some(prefix) = preferred_prefix {
-            if Some(namespace_uri) == self.active_namespace_uri_for_prefix(prefix) {
-                return NamespaceType::Prefix(prefix);
-            }
+        if let Some(prefix) = preferred_prefix
+            && Some(namespace_uri) == self.active_namespace_uri_for_prefix(prefix)
+        {
+            return NamespaceType::Prefix(prefix);
         }
 
         for scope in self.scopes.iter().rev() {

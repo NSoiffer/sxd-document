@@ -21,7 +21,7 @@ where
         K: Borrow<Q>,
         Q: Hash + Eq + ?Sized,
     {
-        self.map.as_ref().map_or(false, |m| m.contains_key(key))
+        self.map.as_ref().is_some_and(|m| m.contains_key(key))
     }
 
     pub fn get<Q>(&self, key: &Q) -> Option<&V>

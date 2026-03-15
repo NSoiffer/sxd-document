@@ -897,10 +897,10 @@ impl Connections {
                 })
                 .collect();
 
-            if let Some(preferred) = preferred_prefix {
-                if let Some(p) = prefixes.iter().find(|p| &***p == preferred) {
-                    return Some(p.clone());
-                }
+            if let Some(preferred) = preferred_prefix
+                && let Some(p) = prefixes.iter().find(|p| &***p == preferred)
+            {
+                return Some(p.clone());
             }
             if let Some(p) = prefixes.first() {
                 return Some(p.clone());
